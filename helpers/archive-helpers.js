@@ -25,17 +25,44 @@ exports.initialize = function(pathsObj) {
 // The following function names are provided to you to suggest how you might
 // modularize your code. Keep it clean!
 
+
+//called from both SERVER and WORKER
 exports.readListOfUrls = function() {
+  //get sites.txt
+  //convert entries into an array of Urls
+
+  //return array of Urls
 };
 
-exports.isUrlInList = function() {
+
+//called from SERVER only
+//inputs: new Url(reqUrl) & readListOfUrl(urlArray)
+exports.isUrlInList = function(reqUrl, urlArray) {
+  //check if 
+
+  //return Boolean
 };
 
-exports.addUrlToList = function() {
+
+//called from SERVER only
+//inputs: new Url(reqUrl)
+exports.addUrlToList = function(reqUrl) {
+  //add Url to sites.txt
+
 };
 
-exports.isUrlArchived = function() {
+
+//called from both SERVER and WORKER
+exports.isUrlArchived = function(searchUrl) {
+  //search sites directory for a file with name match.
+
+  //return Boolean ?? - Maybe return actual file.
 };
 
-exports.downloadUrls = function() {
+
+//called from WORKER only
+//input: array of all Urls
+exports.downloadUrls = function(urlArray) {
+  //create array of non-archived Urls using _.reject(isUrlArchived) logic
+
 };
