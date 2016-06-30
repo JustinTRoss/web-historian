@@ -1,6 +1,8 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
+var fs = require('fs');
+var serveHelp = require('../web/http-helpers');
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -27,9 +29,25 @@ exports.initialize = function(pathsObj) {
 
 
 //called from both SERVER and WORKER
-exports.readListOfUrls = function() {
+exports.readListOfUrls = function(response, pathName, reqUrl) {
   //get sites.txt
+  var fileName = exports.paths.list;
+
+  fs.readFile(fileName, 'utf-8', function(err, data) {
+    console.log('this happens first');
+    var urlArray = data.split(',');
+
+    console.log(urlArray);
+    if (exports.isUrlInList(reqUrl, urlArray)) {
+      serveHelp.archiveServe(response, pathName);
+      return;
+    } else {
+      //if doesn't exist.
+      exports.addUrlToList(reqUrl);
+    }
+  });
   //convert entries into an array of Urls
+
 
   //return array of Urls
 };
@@ -38,9 +56,7 @@ exports.readListOfUrls = function() {
 //called from SERVER only
 //inputs: new Url(reqUrl) & readListOfUrl(urlArray)
 exports.isUrlInList = function(reqUrl, urlArray) {
-  //check if 
-
-  //return Boolean
+  return _.contains(urlArray, reqUrl);
 };
 
 
@@ -48,6 +64,11 @@ exports.isUrlInList = function(reqUrl, urlArray) {
 //inputs: new Url(reqUrl)
 exports.addUrlToList = function(reqUrl) {
   //add Url to sites.txt
+  var fileName = exports.paths.list;
+
+  fs.appendFile(fileName, `${reqUrl},`, function() {
+    console.log('asdf');
+  });
 
 };
 

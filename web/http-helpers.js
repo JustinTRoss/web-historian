@@ -29,23 +29,29 @@ var headers = {
 // As you progress, keep thinking about what helper functions you can put here!
 
 exports.publicServe = function(response, asset) {
-  var returnFile = `${__dirname}/public${asset}`;
+  var returnFile = `${archive.paths.siteAssets}${asset}`;
 
   fs.readFile(returnFile, 'utf-8', function(err, data) {
     if (err) {
       response.writeHead(404, headers);
       response.end('404 NAT FOWND');
     } else {
-      console.log(data);
       response.writeHead(200, headers);
-      console.log('GETTING HERE');
       response.end(data);
     }
   });
 
 };
 
-exports.archiveServe = function(response) {
-  response.writeHead(404, headers);
-  response.end('404 NAT FOWND');
+exports.archiveServe = function(response, asset) {
+  var returnFile = `${archive.paths.archivedSites}${asset}`;
+  fs.readFile(returnFile, 'utf-8', function(err, data) {
+    if (err) {
+      response.writeHead(302, headers);
+      response.end(`${archive.paths.siteAssets}/loading.html`);
+    } else {
+      response.writeHead(200, headers);
+      response.end(data);
+    }
+  });
 };

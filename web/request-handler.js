@@ -18,13 +18,23 @@ var actions = {
       serveHelp.publicServe(response, pathname);
     } else {
       //Archive Case aka archives/sites and archives/sites.txt
-      serveHelp.archiveServe(response, pathname);
+      serveHelp.archiveServe(response, pathname); 
     }
     
   },
-  POST: function(request, response) {
-    //and that will do something as well down the line..
-  },
+  POST: function(request, response) { 
+    var pathName = url.parse(request.url).pathname;
+
+    var data = '';
+    request.on('data', function(chunk) {
+      data += chunk; 
+    });
+    request.on('end', function() { 
+      data = data.split('=')[1];
+      //check if exists:
+      archive.readListOfUrls(response, pathName, data);
+    });
+  }, 
   OPTIONS: function(request, response) {
     //something else
   }
@@ -37,5 +47,5 @@ exports.handleRequest = function (request, response) {
   } else {
     response.end('404 NAT Fownd');
   } 
-  //response.end(archive.paths.list);
+  //response.end(archive.paths.list); 
 };
