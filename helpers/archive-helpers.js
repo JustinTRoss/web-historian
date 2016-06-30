@@ -11,16 +11,17 @@ var serveHelp = require('../web/http-helpers');
  * customize it in any way you wish.
  */
 
-exports.paths = {
+var paths = exports.paths = {
   siteAssets: path.join(__dirname, '../web/public'),
   archivedSites: path.join(__dirname, '../archives/sites'),
   list: path.join(__dirname, '../archives/sites.txt')
+  // loader: path.join(__dirname, '../web/public/loading.html')
 };
 
 // Used for stubbing paths for tests, do not modify 
 exports.initialize = function(pathsObj) {
   _.each(pathsObj, function(path, type) {
-    exports.paths[type] = path;
+    paths[type] = path;
   });
 };
 
@@ -29,51 +30,45 @@ exports.initialize = function(pathsObj) {
 
 
 //called from both SERVER and WORKER
-exports.readListOfUrls = function(response, pathName, reqUrl) {
+var readListOfUrls = exports.readListOfUrls = function(response, pathName, reqUrl) {
   //get sites.txt
-  var fileName = exports.paths.list;
+  var fileName = paths.list;
 
   fs.readFile(fileName, 'utf-8', function(err, data) {
-    console.log('this happens first');
+
     var urlArray = data.split(',');
 
-    console.log(urlArray);
-    if (exports.isUrlInList(reqUrl, urlArray)) {
+    if (isUrlInList(reqUrl, urlArray)) {
       serveHelp.archiveServe(response, pathName);
-      return;
     } else {
       //if doesn't exist.
-      exports.addUrlToList(reqUrl);
+      addUrlToList(response, reqUrl);
     }
   });
-  //convert entries into an array of Urls
-
-
-  //return array of Urls
 };
 
 
 //called from SERVER only
 //inputs: new Url(reqUrl) & readListOfUrl(urlArray)
-exports.isUrlInList = function(reqUrl, urlArray) {
+var isUrlInList = exports.isUrlInList = function(reqUrl, urlArray) {
   return _.contains(urlArray, reqUrl);
 };
 
 
 //called from SERVER only
 //inputs: new Url(reqUrl)
-exports.addUrlToList = function(reqUrl) {
+var addUrlToList = exports.addUrlToList = function(response, reqUrl) {
   //add Url to sites.txt
-  var fileName = exports.paths.list;
+  var fileName = paths.list;
 
   fs.appendFile(fileName, `${reqUrl},`, function() {
-    console.log('asdf');
+    serveHelp.publicServe(response, '/loading.html');
   });
 
 };
 
 
-//called from both SERVER and WORKER
+//called from both WORKER
 exports.isUrlArchived = function(searchUrl) {
   //search sites directory for a file with name match.
 

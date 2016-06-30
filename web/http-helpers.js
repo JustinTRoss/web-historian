@@ -1,6 +1,6 @@
 var path = require('path');
 var fs = require('fs');
-var archive = require('../helpers/archive-helpers');
+var archive = require('../helpers/archive-helpers'); 
 var url = require('url');
 
 var headers = {
@@ -28,17 +28,18 @@ var headers = {
 
 // As you progress, keep thinking about what helper functions you can put here!
 
-exports.publicServe = function(response, asset) {
+var publicServe = exports.publicServe = function(response, asset) {
   var returnFile = `${archive.paths.siteAssets}${asset}`;
-
   fs.readFile(returnFile, 'utf-8', function(err, data) {
     if (err) {
-      response.writeHead(404, headers);
-      response.end('404 NAT FOWND');
+      data = 'Site file not found';
+      var statusCode = 404;
     } else {
-      response.writeHead(200, headers);
-      response.end(data);
+      if (asset === '/loading.html') {
+        var statusCode = 302;
+      }
     }
+    responder(response, data, statusCode);
   });
 
 };
@@ -47,11 +48,14 @@ exports.archiveServe = function(response, asset) {
   var returnFile = `${archive.paths.archivedSites}${asset}`;
   fs.readFile(returnFile, 'utf-8', function(err, data) {
     if (err) {
-      response.writeHead(302, headers);
-      response.end(`${archive.paths.siteAssets}/loading.html`);
+      publicServe(response, '/loading.html');
     } else {
-      response.writeHead(200, headers);
-      response.end(data);
+      responder(response, data);
     }
   });
+};
+
+var responder = function(response, data, statusCode) {
+  response.writeHead(statusCode || 200, headers);
+  response.end(data);
 };
