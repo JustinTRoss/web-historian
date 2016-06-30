@@ -15,7 +15,7 @@ exports.paths = {
   list: path.join(__dirname, '../archives/sites.txt')
 };
 
-// Used for stubbing paths for tests, do not modify
+// Used for stubbing paths for tests, do not modify 
 exports.initialize = function(pathsObj) {
   _.each(pathsObj, function(path, type) {
     exports.paths[type] = path;
