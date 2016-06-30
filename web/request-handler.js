@@ -6,7 +6,7 @@ var serveHelp = require('./http-helpers');
 // require more modules/folders here!
 
 var actions = {
-  GET: function(request, response /*?*/) {
+  GET: function(request, response) {
     var pathname = url.parse(request.url).pathname;
 
     if ( pathname === '/' ) {
@@ -15,6 +15,8 @@ var actions = {
 
     if ( pathname === '/index.html' || pathname === '/styles.css') {
       //Public case aka site files (index.html/styles.css)
+      serveHelp.publicServe(response, pathname);
+    } else if (pathname.indexOf('.') === -1) {
       serveHelp.publicServe(response, pathname);
     } else {
       //Archive Case aka archives/sites and archives/sites.txt

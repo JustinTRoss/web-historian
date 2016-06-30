@@ -48,14 +48,17 @@ exports.archiveServe = function(response, asset) {
   var returnFile = `${archive.paths.archivedSites}${asset}`;
   fs.readFile(returnFile, 'utf-8', function(err, data) {
     if (err) {
+
       publicServe(response, '/loading.html');
     } else {
+      //If it exists in archives return outright(responder)
       responder(response, data);
     }
   });
 };
 
 var responder = function(response, data, statusCode) {
-  response.writeHead(statusCode || 200, headers);
+  statusCode = statusCode || 200;
+  response.writeHead(statusCode, headers);
   response.end(data);
 };
