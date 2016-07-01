@@ -8,33 +8,29 @@ var serveHelp = require('./http-helpers');
 var actions = {
   GET: function(request, response) {
     var pathname = url.parse(request.url).pathname;
-
-    if ( pathname === '/' ) {
-      pathname = '/index.html';
-    }
-
-    if ( pathname === '/index.html' || pathname === '/styles.css') {
-      //Public case aka site files (index.html/styles.css)
-      serveHelp.publicServe(response, pathname);
-    } else if (pathname.indexOf('.') === -1) {
-      serveHelp.publicServe(response, pathname);
-    } else {
-      //Archive Case aka archives/sites and archives/sites.txt
-      serveHelp.archiveServe(response, pathname); 
-    }
-    
+    pathname = pathname === '/' ? '/index.html' : pathname;
+    serveHelp.serveAssets(response, pathname/*, callback*/);
   },
   POST: function(request, response) { 
-    var pathName = url.parse(request.url).pathname;
+    //collect request data
+    serveHelp.collectData(request, response, function(searchUrl) {
 
-    var data = '';
-    request.on('data', function(chunk) {
-      data += chunk; 
-    });
-    request.on('end', function() { 
-      data = data.split('=')[1];
-      //check if exists:
-      archive.readListOfUrls(response, pathName, data);
+      //check if searchUrl is in our sites.txt file
+      archive.isUrlInList(searchUrl, function(found) {
+        if (found) {
+          archive.isUrlArchived(searchUrl, function(isArchived) {
+            if (isArchived) {
+              serveHelp.serveAssets(response, searchUrl);
+            } else {
+              serveHelp.serveAssets(response, '/loading.html');
+            }
+          });
+        } else { // not found in Url list (sites.txt)
+          archive.addUrlToList(searchUrl, function() {
+            serveHelp.serveAssets(response, '/loading.html');
+          });
+        }
+      });
     });
   }, 
   OPTIONS: function(request, response) {

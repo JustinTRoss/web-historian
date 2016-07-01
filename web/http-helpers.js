@@ -12,49 +12,24 @@ var headers = {
 };
 
 
-/*exports.serveAssets = function(response, asset, callback) {
-  // Write some code here that helps serve up your static files!
-  // (Static files are things like html (yours or archived from others...),
-  // css, or anything that doesn't change often.)
-
-  var temp = callback(response, asset);
-
-
-
-    //change headers.headers['Content-Type'] to equal request.
-    //headers.headers['Content-Type'] = request.headers.accept.split(',')[0];
-
-};*/
-
-// As you progress, keep thinking about what helper functions you can put here!
-
-var publicServe = exports.publicServe = function(response, asset) {
-  var returnFile = `${archive.paths.siteAssets}${asset}`;
-  fs.readFile(returnFile, 'utf-8', function(err, data) {
+exports.serveAssets = function(response, pathname, callback) {
+  var filePath = `${archive.paths.siteAssets}${pathname}`;
+  fs.readFile(filePath, 'utf-8', function(err, data) {
     if (err) {
-      data = 'Site file not found';
-      var statusCode = 404;
+      filePath = `${archive.paths.archivedSites}${pathname}`;
+      fs.readFile(filePath, 'utf-8', function(err, data) {
+        if (err) {
+          callback ? callback() : responder(response, '404.. Does not exist', 404);
+        } else {
+          responder(response, data);
+        }
+      });
     } else {
-      if (asset === '/loading.html') {
-        var statusCode = 302;
-      }
-    }
-    responder(response, data, statusCode);
-  });
-
-};
-
-exports.archiveServe = function(response, asset) {
-  var returnFile = `${archive.paths.archivedSites}${asset}`;
-  fs.readFile(returnFile, 'utf-8', function(err, data) {
-    if (err) {
-
-      publicServe(response, '/loading.html');
-    } else {
-      //If it exists in archives return outright(responder)
-      responder(response, data);
+      if (pathname === '/loading.html') { var statusCode = 302; }
+      responder(response, data, statusCode);
     }
   });
+
 };
 
 var responder = function(response, data, statusCode) {
@@ -62,3 +37,26 @@ var responder = function(response, data, statusCode) {
   response.writeHead(statusCode, headers);
   response.end(data);
 };
+
+var collectData = exports.collectData = function(request, response, callback) {
+  var data = '';
+  request.on('data', function(chunk) {
+    data += chunk; 
+  });
+  request.on('end', function() { 
+    data = data.split('=')[1];
+    callback(data);
+  });
+};
+
+
+
+
+
+
+
+
+
+
+
+

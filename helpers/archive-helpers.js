@@ -1,8 +1,8 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
-var fs = require('fs');
 var serveHelp = require('../web/http-helpers');
+var request = require('request');
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -28,21 +28,17 @@ exports.initialize = function(pathsObj) {
 // The following function names are provided to you to suggest how you might
 // modularize your code. Keep it clean!
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Server stuff~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-//called from both SERVER and WORKER
-var readListOfUrls = exports.readListOfUrls = function(response, pathName, reqUrl) {
+//called from SERVER
+var readListOfUrls = exports.readListOfUrls = function(callback) {
   //get sites.txt
   var fileName = paths.list;
 
   fs.readFile(fileName, 'utf-8', function(err, data) {
-
-    var urlArray = data.split(',');
-
-    if (isUrlInList(reqUrl, urlArray)) {
-      serveHelp.archiveServe(response, pathName);
-    } else {
-      //if doesn't exist.
-      addUrlToList(response, reqUrl);
+    var urlArray = data.split('\n');
+    if (callback) {
+      callback(urlArray);     
     }
   });
 };
@@ -50,29 +46,37 @@ var readListOfUrls = exports.readListOfUrls = function(response, pathName, reqUr
 
 //called from SERVER only
 //inputs: new Url(reqUrl) & readListOfUrl(urlArray)
-var isUrlInList = exports.isUrlInList = function(reqUrl, urlArray) {
-  return _.contains(urlArray, reqUrl);
+var isUrlInList = exports.isUrlInList = function(reqUrl, callback) {
+  readListOfUrls(function(urlArray) {
+    var found = _.contains(urlArray, reqUrl);
+    callback(found);
+  });
 };
 
 
 //called from SERVER only
 //inputs: new Url(reqUrl)
-var addUrlToList = exports.addUrlToList = function(response, reqUrl) {
+var addUrlToList = exports.addUrlToList = function(reqUrl, callback) {
   //add Url to sites.txt
   var fileName = paths.list;
 
-  fs.appendFile(fileName, `${reqUrl},`, function() {
-    serveHelp.publicServe(response, '/loading.html');
+  fs.appendFile(fileName, `${reqUrl}\n`, function() {
+    callback();
   });
-
 };
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Worker stuff~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 //called from both WORKER
-exports.isUrlArchived = function(searchUrl) {
-  //search sites directory for a file with name match.
+exports.isUrlArchived = function(searchUrl, callback) {
+  //Changed the fileName 
+  //var fileName = path.join(exports.paths.archivedSites, searchUrl);
+  var fileName = paths.archivedSites + '/' + searchUrl;
 
-  //return Boolean ?? - Maybe return actual file.
+  fs.exists(fileName, function(exists) {
+    callback(exists);
+  });
+
 };
 
 
@@ -80,5 +84,10 @@ exports.isUrlArchived = function(searchUrl) {
 //input: array of all Urls
 exports.downloadUrls = function(urlArray) {
   //create array of non-archived Urls using _.reject(isUrlArchived) logic
-
+  _.each(urlArray, function(url) {
+    if (!url) {
+      return;
+    }
+    request(`http://${url}`).pipe(fs.createWriteStream(`${paths.archivedSites}/${url}`));
+  });
 };
