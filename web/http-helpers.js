@@ -16,9 +16,10 @@ exports.serveAssets = function(response, pathname, callback) {
   var filePath = `${archive.paths.siteAssets}${pathname}`;
   fs.readFile(filePath, 'utf-8', function(err, data) {
     if (err) {
-      filePath = `${archive.paths.archivedSites}${pathname}`;
+      filePath = `${archive.paths.archivedSites}/${pathname}`;
       fs.readFile(filePath, 'utf-8', function(err, data) {
         if (err) {
+          console.log(filePath, pathname);
           callback ? callback() : responder(response, '404.. Does not exist', 404);
         } else {
           responder(response, data);

@@ -69,8 +69,6 @@ var addUrlToList = exports.addUrlToList = function(reqUrl, callback) {
 
 //called from both WORKER
 exports.isUrlArchived = function(searchUrl, callback) {
-  //Changed the fileName 
-  //var fileName = path.join(exports.paths.archivedSites, searchUrl);
   var fileName = paths.archivedSites + '/' + searchUrl;
 
   fs.exists(fileName, function(exists) {
@@ -83,11 +81,9 @@ exports.isUrlArchived = function(searchUrl, callback) {
 //called from WORKER only
 //input: array of all Urls
 exports.downloadUrls = function(urlArray) {
-  //create array of non-archived Urls using _.reject(isUrlArchived) logic
-  _.each(urlArray, function(url) {
-    if (!url) {
-      return;
-    }
-    request(`http://${url}`).pipe(fs.createWriteStream(`${paths.archivedSites}/${url}`));
+  // Iterate over urls and pipe to new files
+  _.each(urlArray, function (url) {
+    if (!url) { return; }
+    request('http://' + url).pipe(fs.createWriteStream(paths.archivedSites + '/' + url));
   });
 };
